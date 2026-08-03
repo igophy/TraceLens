@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#080b12" />
+  <meta name="description" content="TraceLens – verktøy for teknisk analyse og digital etterforskning." />
+  <title>TraceLens</title>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#overview" aria-label="TraceLens oversikt">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" role="img">
+            <path d="M24 5 40 14v20L24 43 8 34V14L24 5Z" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <circle cx="24" cy="24" r="8" fill="none" stroke="currentColor" stroke-width="2.5"/>
+            <path d="m30 30 6 6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <span>
+          <strong>TraceLens</strong>
+          <small>INTELLIGENCE SUITE</small>
+        </span>
+      </a>
+
+      <nav class="main-nav" aria-label="Hovedmeny">
+        <button class="nav-item active" data-view="overview"><span class="nav-icon">⌂</span><span>Oversikt</span></button>
+        <button class="nav-item" data-view="domain"><span class="nav-icon">◎</span><span>Domene</span></button>
+        <button class="nav-item" data-view="ip"><span class="nav-icon">⌖</span><span>IP-oppslag</span></button>
+        <button class="nav-item" data-view="hash"><span class="nav-icon">#</span><span>Hash Lab</span></button>
+        <button class="nav-item" data-view="file"><span class="nav-icon">▱</span><span>Filanalyse</span></button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <span class="status-dot"></span>
+        <div><strong>System klar</strong><small>Lokale analyser aktive</small></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div><span class="eyebrow" id="viewEyebrow">OPERATIONS</span><h1 id="viewTitle">Oversikt</h1></div>
+        <div class="topbar-actions">
+          <button class="icon-button" id="clearHistoryButton" aria-label="Tøm historikk" title="Tøm historikk">↺</button>
+          <div class="clock" id="clock" aria-label="Klokkeslett"></div>
+        </div>
+      </header>
+
+      <section class="view active" id="view-overview" data-title="Oversikt" data-eyebrow="OPERATIONS">
+        <div class="hero-panel">
+          <div class="hero-copy">
+            <span class="signal-badge"><i></i> SECURE WORKSPACE</span>
+            <h2>Data leaves traces.</h2>
+            <p>Finn dem.</p>
+          </div>
+          <div class="radar" aria-hidden="true">
+            <span class="radar-ring ring-1"></span><span class="radar-ring ring-2"></span><span class="radar-ring ring-3"></span><span class="radar-sweep"></span><span class="radar-core"></span>
+          </div>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat-card"><span>Analyser</span><strong id="analysisCount">0</strong><small>lagret lokalt</small></article>
+          <article class="stat-card"><span>Verktøy</span><strong>4</strong><small>operative</small></article>
+          <article class="stat-card"><span>Datadeling</span><strong>0</strong><small>filer lastes ikke opp</small></article>
+        </div>
+
+        <div class="section-heading"><div><span class="eyebrow">TOOLKIT</span><h3>Velg verktøy</h3></div></div>
+        <div class="tool-grid">
+          <button class="tool-card" data-open-view="domain"><span class="tool-symbol">◎</span><span class="tool-meta"><strong>Domain Intel</strong><small>DNS, servere og domeneinfrastruktur</small></span><span class="tool-arrow">↗</span></button>
+          <button class="tool-card" data-open-view="ip"><span class="tool-symbol">⌖</span><span class="tool-meta"><strong>IP Lookup</strong><small>ASN, nettverk og omtrentlig posisjon</small></span><span class="tool-arrow">↗</span></button>
+          <button class="tool-card" data-open-view="hash"><span class="tool-symbol">#</span><span class="tool-meta"><strong>Hash Lab</strong><small>Fingeravtrykk for tekst og filer</small></span><span class="tool-arrow">↗</span></button>
+          <button class="tool-card" data-open-view="file"><span class="tool-symbol">▱</span><span class="tool-meta"><strong>File Intel</strong><small>Metadata og EXIF på enheten</small></span><span class="tool-arrow">↗</span></button>
+        </div>
+
+        <div class="history-panel">
+          <div class="section-heading compact"><div><span class="eyebrow">RECENT ACTIVITY</span><h3>Siste analyser</h3></div></div>
+          <div id="historyList" class="history-list"></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-domain" data-title="Domain Intel" data-eyebrow="NETWORK INTELLIGENCE">
+        <div class="workspace-card">
+          <form id="domainForm" class="analysis-form">
+            <label for="domainInput">Domene</label>
+            <div class="input-row">
+              <div class="input-shell"><span>◎</span><input id="domainInput" name="domain" placeholder="example.com" autocomplete="off" spellcheck="false" required /></div>
+              <button class="primary-button" type="submit"><span>Analyser</span><i>↗</i></button>
+            </div>
+          </form>
+          <div class="scan-line" aria-hidden="true"></div>
+          <div id="domainResult" class="result-area empty-state"><span class="empty-symbol">◎</span><p>Ingen aktiv analyse</p></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-ip" data-title="IP Lookup" data-eyebrow="GEO NETWORK">
+        <div class="workspace-card">
+          <form id="ipForm" class="analysis-form">
+            <label for="ipInput">IP-adresse</label>
+            <div class="input-row">
+              <div class="input-shell"><span>⌖</span><input id="ipInput" name="ip" placeholder="8.8.8.8" autocomplete="off" spellcheck="false" required /></div>
+              <button class="primary-button" type="submit"><span>Slå opp</span><i>↗</i></button>
+            </div>
+          </form>
+          <div id="ipResult" class="result-area empty-state"><span class="empty-symbol">⌖</span><p>Ingen aktiv analyse</p></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-hash" data-title="Hash Lab" data-eyebrow="DIGITAL FINGERPRINT">
+        <div class="workspace-card">
+          <div class="mode-switch" role="tablist" aria-label="Hash-kilde">
+            <button class="mode-button active" type="button" data-hash-mode="text">Tekst</button>
+            <button class="mode-button" type="button" data-hash-mode="file">Fil</button>
+          </div>
+          <form id="hashForm" class="analysis-form hash-form">
+            <div id="hashTextMode"><label for="hashText">Innhold</label><textarea id="hashText" rows="7" placeholder="Skriv eller lim inn tekst …"></textarea></div>
+            <div id="hashFileMode" hidden>
+              <label for="hashFile">Velg fil</label>
+              <label class="drop-zone" for="hashFile"><span class="drop-icon">＋</span><strong id="hashFileName">Velg fil</strong><small>Filen behandles lokalt</small><input id="hashFile" type="file" /></label>
+            </div>
+            <button class="primary-button wide" type="submit"><span>Generer fingeravtrykk</span><i>↗</i></button>
+          </form>
+          <div id="hashResult" class="result-area empty-state"><span class="empty-symbol">#</span><p>Ingen aktiv analyse</p></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-file" data-title="File Intel" data-eyebrow="LOCAL FORENSICS">
+        <div class="workspace-card">
+          <form id="fileForm" class="analysis-form">
+            <label for="fileInput">Velg fil</label>
+            <label class="drop-zone large" for="fileInput"><span class="drop-icon">＋</span><strong id="fileInputName">Slipp en fil her eller trykk for å velge</strong><small>Bilder analyseres for tilgjengelige EXIF-data</small><input id="fileInput" type="file" required /></label>
+            <button class="primary-button wide" type="submit"><span>Analyser fil</span><i>↗</i></button>
+          </form>
+          <div id="fileResult" class="result-area empty-state"><span class="empty-symbol">▱</span><p>Ingen aktiv analyse</p></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js" defer></script>
+</body>
+</html>
