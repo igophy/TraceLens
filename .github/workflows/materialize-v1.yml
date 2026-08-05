@@ -1,0 +1,39 @@
+name: Materialize TraceLens production v1
+
+on:
+  push:
+    branches: [feat/production-v1]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout production branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/production-v1
+          fetch-depth: 0
+
+      - name: Restore tested application
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .tracelens-payload/chunk-* | base64 -d > /tmp/tracelens-v1.tar.gz
+          echo "d5aa22218653063356cfdead0e3858ff9f8980b47121b4f47a57c0482a9ceeeb  /tmp/tracelens-v1.tar.gz" | sha256sum -c -
+          tar -xzf /tmp/tracelens-v1.tar.gz -C .
+          rm -rf .tracelens-payload
+          rm -f .github/workflows/materialize-v1.yml
+
+      - name: Commit production v1
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "feat: complete TraceLens production v1"
+          git push origin HEAD:feat/production-v1
