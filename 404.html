@@ -50,10 +50,8 @@
         let js=text(files['app.js']);
         const icon=text(files['assets/icon.svg']);
         if(!html||!css||!js)throw new Error('Produktpakken er ufullstendig');
-        js=js.replace("if('serviceWorker' in navigator && location.protocol==='https:') window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));",'');
         html=html
           .replace(/<link rel="stylesheet" href="styles\.css"\s*\/?>(?:\s*)/i,`<style>${css.replace(/<\/style/gi,'<\\/style')}</style>`)
-          .replace(/<link rel="manifest"[^>]*>/i,'')
           .replace(/<link rel="icon"[^>]*>/i,`<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(icon)}" type="image/svg+xml">`)
           .replace(/<script src="app\.js" defer><\/script>/i,`<script>${js.replace(/<\/script/gi,'<\\/script')}<\/script>`);
         document.open();document.write(html);document.close();
