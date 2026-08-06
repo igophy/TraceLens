@@ -9,6 +9,7 @@
   <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="reports.css">
 </head>
 <body>
   <div class="app-shell">
@@ -132,5 +133,8 @@
   <dialog id="caseDialog" class="modal"><form method="dialog" id="caseForm"><div class="modal-head"><div><span class="eyebrow">NEW CASE</span><h2>Opprett sak</h2></div><button value="cancel" class="icon-button" aria-label="Lukk">×</button></div><label for="caseTitle">Tittel</label><input id="caseTitle" maxlength="80" placeholder="Mistenkelig e-post" required><label for="caseDescription">Beskrivelse</label><textarea id="caseDescription" rows="4" maxlength="500" placeholder="Hva undersøker du?"></textarea><div class="modal-actions"><button value="cancel" class="ghost-button">Avbryt</button><button value="default" class="primary-button" id="createCaseButton">Opprett</button></div></form></dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
   <script src="app.js" defer></script>
+  <script src="reports-core.js" defer></script>
+  <script src="reports-ui.js" defer></script>
+  <script src="reports-export.js" defer></script>
 </body>
 </html>
