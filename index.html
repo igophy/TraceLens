@@ -2,65 +2,135 @@
 <html lang="no">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#070b12">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071018">
+  <meta name="description" content="TraceLens – teknisk analyse og lokal dokumentasjon.">
   <title>TraceLens</title>
-  <style>
-    :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#070b12;color:#eef5ff}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 70% 15%,rgba(99,102,241,.18),transparent 32%),radial-gradient(circle at 20% 85%,rgba(34,211,238,.12),transparent 30%),#070b12}.boot{width:min(440px,calc(100% - 40px));padding:34px;border:1px solid rgba(148,163,184,.16);border-radius:22px;background:rgba(12,18,30,.88);box-shadow:0 28px 80px rgba(0,0,0,.42);backdrop-filter:blur(22px)}.brand{display:flex;align-items:center;gap:14px}.mark{width:48px;height:48px;display:grid;place-items:center;border:1px solid rgba(103,232,249,.3);border-radius:14px;color:#67e8f9;background:rgba(103,232,249,.07);font-size:22px}.brand strong{display:block;font-size:18px}.brand small{display:block;margin-top:4px;color:#8491a8;font-size:9px;letter-spacing:.18em}.status{margin-top:34px;color:#aab6c9;font:600 11px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em}.track{height:2px;margin-top:14px;overflow:hidden;background:rgba(148,163,184,.12)}.track i{display:block;width:42%;height:100%;background:linear-gradient(90deg,transparent,#67e8f9,transparent);animation:scan 1.2s ease-in-out infinite}.error{color:#fb7185;line-height:1.55;letter-spacing:0;font-family:inherit;font-weight:500}@keyframes scan{from{transform:translateX(-110%)}to{transform:translateX(300%)}}
-  </style>
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <main class="boot" aria-live="polite">
-    <div class="brand"><span class="mark">◎</span><span><strong>TraceLens</strong><small>INTELLIGENCE SUITE</small></span></div>
-    <div class="status" id="status">INITIALISERER SIKKERT ARBEIDSOMRÅDE</div>
-    <div class="track"><i></i></div>
-  </main>
-  <script>
-  (()=>{
-    const PARTS=6;
-    const EXPECTED='d5aa22218653063356cfdead0e3858ff9f8980b47121b4f47a57c0482a9ceeeb';
-    const status=document.getElementById('status');
-    const text=bytes=>new TextDecoder().decode(bytes).replace(/\0.*$/s,'').trim();
-    const hex=buffer=>[...new Uint8Array(buffer)].map(v=>v.toString(16).padStart(2,'0')).join('');
-    function parseTar(bytes){
-      const files={};let offset=0;
-      while(offset+512<=bytes.length){
-        const header=bytes.subarray(offset,offset+512);const name=text(header.subarray(0,100));
-        if(!name)break;
-        const size=parseInt(text(header.subarray(124,136))||'0',8)||0;
-        const start=offset+512;files[name]=bytes.slice(start,start+size);
-        offset=start+Math.ceil(size/512)*512;
-      }
-      return files;
-    }
-    async function boot(){
-      try{
-        status.textContent='LASTER VERIFISERT PRODUKTPAKKE';
-        const parts=await Promise.all(Array.from({length:PARTS},(_,i)=>fetch(`bundle/chunk-${String(i).padStart(2,'0')}`,{cache:'no-cache'}).then(r=>{if(!r.ok)throw new Error(`Mangler produktdel ${i+1}`);return r.text();})));
-        const raw=atob(parts.join('').replace(/\s/g,''));
-        const packed=Uint8Array.from(raw,c=>c.charCodeAt(0));
-        const digest=hex(await crypto.subtle.digest('SHA-256',packed));
-        if(digest!==EXPECTED)throw new Error('Integritetskontrollen av produktpakken feilet');
-        if(typeof DecompressionStream==='undefined')throw new Error('Nettleseren støtter ikke sikker dekomprimering');
-        status.textContent='KLARGJØR ANALYSEVERKTØY';
-        const stream=new Blob([packed]).stream().pipeThrough(new DecompressionStream('gzip'));
-        const files=parseTar(new Uint8Array(await new Response(stream).arrayBuffer()));
-        let html=text(files['index.html']);
-        const css=text(files['styles.css']);
-        let js=text(files['app.js']);
-        const icon=text(files['assets/icon.svg']);
-        if(!html||!css||!js)throw new Error('Produktpakken er ufullstendig');
-        html=html
-          .replace(/<link rel="stylesheet" href="styles\.css"\s*\/?>(?:\s*)/i,`<style>${css.replace(/<\/style/gi,'<\\/style')}</style>`)
-          .replace(/<link rel="icon"[^>]*>/i,`<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(icon)}" type="image/svg+xml">`)
-          .replace(/<script src="app\.js" defer><\/script>/i,`<script>${js.replace(/<\/script/gi,'<\\/script')}<\/script>`);
-        document.open();document.write(html);document.close();
-      }catch(error){
-        console.error(error);status.className='status error';status.textContent=`TraceLens kunne ikke starte: ${error.message}. Last siden på nytt.`;
-      }
-    }
-    boot();
-  })();
-  </script>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#overview" data-view-link="overview" aria-label="TraceLens oversikt">
+        <span class="brand-mark">◎</span>
+        <span><strong>TraceLens</strong><small>INTELLIGENCE SUITE</small></span>
+      </a>
+
+      <nav class="main-nav" aria-label="Hovedmeny">
+        <button class="nav-item active" data-view="overview"><span>⌂</span>Oversikt</button>
+        <button class="nav-item" data-view="url"><span>↗</span>URL Inspector</button>
+        <button class="nav-item" data-view="domain"><span>◎</span>Domain Intel</button>
+        <button class="nav-item" data-view="ip"><span>⌖</span>IP Intel</button>
+        <button class="nav-item" data-view="file"><span>▱</span>File Intel</button>
+        <button class="nav-item" data-view="hash"><span>#</span>Hash Lab</button>
+        <button class="nav-item" data-view="cases"><span>◫</span>Saker</button>
+      </nav>
+
+      <div class="privacy-note"><i></i><div><strong>Lokal behandling</strong><small>Filer forlater ikke enheten</small></div></div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="menu-button" id="menuButton" aria-label="Åpne meny">☰</button>
+        <div><span class="eyebrow" id="viewEyebrow">OPERATIONS</span><h1 id="viewTitle">Oversikt</h1></div>
+        <div class="top-actions">
+          <label class="case-select-wrap" for="activeCaseSelect"><span>AKTIV SAK</span><select id="activeCaseSelect"><option value="">Ingen sak</option></select></label>
+          <div class="clock" id="clock"></div>
+        </div>
+      </header>
+
+      <section class="view active" id="view-overview" data-title="Oversikt" data-eyebrow="OPERATIONS">
+        <article class="hero-panel">
+          <div class="hero-copy"><span class="signal-badge"><i></i>SYSTEM READY</span><h2>Finn sporene.<br><em>Forstå signalene.</em></h2><p>Teknisk analyse uten terminal.</p></div>
+          <div class="radar" aria-hidden="true"><span></span><span></span><span></span><i></i></div>
+        </article>
+        <div class="stats-grid">
+          <article class="stat-card"><span>Analyser</span><strong id="analysisCount">0</strong><small>lagret lokalt</small></article>
+          <article class="stat-card"><span>Saker</span><strong id="caseCount">0</strong><small>på denne enheten</small></article>
+          <article class="stat-card"><span>Verktøy</span><strong>5</strong><small>operative</small></article>
+        </div>
+        <div class="section-heading"><div><span class="eyebrow">TOOLKIT</span><h2>Start en analyse</h2></div></div>
+        <div class="tool-grid">
+          <button class="tool-card" data-open-view="url"><span class="tool-icon">↗</span><span><strong>URL Inspector</strong><small>Analyser lenkestruktur og risikosignaler</small></span><b>→</b></button>
+          <button class="tool-card" data-open-view="domain"><span class="tool-icon">◎</span><span><strong>Domain Intel</strong><small>DNS, e-postvern og infrastruktur</small></span><b>→</b></button>
+          <button class="tool-card" data-open-view="ip"><span class="tool-icon">⌖</span><span><strong>IP Intel</strong><small>ASN, nettverk og omtrentlig sted</small></span><b>→</b></button>
+          <button class="tool-card" data-open-view="file"><span class="tool-icon">▱</span><span><strong>File Intel</strong><small>Signatur, metadata, entropi og hash</small></span><b>→</b></button>
+          <button class="tool-card" data-open-view="hash"><span class="tool-icon">#</span><span><strong>Hash Lab</strong><small>Generer og verifiser fingeravtrykk</small></span><b>→</b></button>
+        </div>
+        <article class="panel history-panel"><div class="panel-head"><div><span class="eyebrow">RECENT ACTIVITY</span><h2>Siste analyser</h2></div><button class="ghost-button" id="clearHistoryButton">Tøm</button></div><div id="historyList" class="history-list"></div></article>
+      </section>
+
+      <section class="view" id="view-url" data-title="URL Inspector" data-eyebrow="LINK ANALYSIS">
+        <article class="workspace-card">
+          <form id="urlForm" class="analysis-form">
+            <label for="urlInput">Nettadresse eller lenke</label>
+            <div class="input-row"><div class="input-shell"><span>↗</span><input id="urlInput" placeholder="https://example.com/path" autocomplete="off" spellcheck="false" required></div><button class="primary-button" type="submit">Analyser</button></div>
+            <p class="form-hint">Lenken analyseres strukturelt og åpnes ikke.</p>
+          </form>
+          <div id="urlResult" class="result-area empty-state"><span>↗</span><p>Ingen aktiv analyse</p></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-domain" data-title="Domain Intel" data-eyebrow="NETWORK INTELLIGENCE">
+        <article class="workspace-card">
+          <form id="domainForm" class="analysis-form">
+            <label for="domainInput">Domene</label>
+            <div class="input-row"><div class="input-shell"><span>◎</span><input id="domainInput" placeholder="example.com" autocomplete="off" spellcheck="false" required></div><button class="primary-button" type="submit">Slå opp</button></div>
+            <p class="form-hint">Oppslaget bruker Google Public DNS.</p>
+          </form>
+          <div id="domainResult" class="result-area empty-state"><span>◎</span><p>Ingen aktiv analyse</p></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-ip" data-title="IP Intel" data-eyebrow="GEO NETWORK">
+        <article class="workspace-card">
+          <form id="ipForm" class="analysis-form">
+            <label for="ipInput">IP-adresse</label>
+            <div class="input-row"><div class="input-shell"><span>⌖</span><input id="ipInput" placeholder="8.8.8.8" autocomplete="off" spellcheck="false" required></div><button class="primary-button" type="submit">Slå opp</button></div>
+            <p class="form-hint">Offentlige IP-adresser slås opp via ipwho.is. Privatadresser behandles lokalt.</p>
+          </form>
+          <div id="ipResult" class="result-area empty-state"><span>⌖</span><p>Ingen aktiv analyse</p></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-file" data-title="File Intel" data-eyebrow="LOCAL FORENSICS">
+        <article class="workspace-card">
+          <form id="fileForm" class="analysis-form">
+            <label for="fileInput">Velg fil</label>
+            <label class="drop-zone" for="fileInput"><span>＋</span><strong id="fileInputName">Slipp en fil her eller trykk for å velge</strong><small>Behandles lokalt i nettleseren</small><input id="fileInput" type="file" required></label>
+            <button class="primary-button wide" type="submit">Analyser fil</button>
+          </form>
+          <div id="fileResult" class="result-area empty-state"><span>▱</span><p>Ingen aktiv analyse</p></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-hash" data-title="Hash Lab" data-eyebrow="DIGITAL FINGERPRINT">
+        <article class="workspace-card">
+          <div class="mode-switch"><button class="mode-button active" data-hash-mode="text" type="button">Tekst</button><button class="mode-button" data-hash-mode="file" type="button">Fil</button></div>
+          <form id="hashForm" class="analysis-form">
+            <div id="hashTextMode"><label for="hashText">Tekst</label><textarea id="hashText" rows="7" placeholder="Skriv eller lim inn tekst"></textarea></div>
+            <div id="hashFileMode" hidden><label for="hashFile">Fil</label><label class="drop-zone compact" for="hashFile"><span>＋</span><strong id="hashFileName">Velg fil</strong><small>Behandles lokalt</small><input id="hashFile" type="file"></label></div>
+            <label for="expectedHash">Forventet hash <small>(valgfritt)</small></label>
+            <div class="input-shell"><span>=</span><input id="expectedHash" placeholder="Lim inn SHA-256, SHA-384 eller SHA-1" autocomplete="off" spellcheck="false"></div>
+            <button class="primary-button wide" type="submit">Generer og kontroller</button>
+          </form>
+          <div id="hashResult" class="result-area empty-state"><span>#</span><p>Ingen aktiv analyse</p></div>
+        </article>
+      </section>
+
+      <section class="view" id="view-cases" data-title="Saker" data-eyebrow="CASE MANAGEMENT">
+        <div class="cases-layout">
+          <article class="panel case-list-panel"><div class="panel-head"><div><span class="eyebrow">LOCAL CASES</span><h2>Dine saker</h2></div><button class="primary-button small" id="newCaseButton">Ny sak</button></div><div id="caseList" class="case-list"></div></article>
+          <article class="panel case-detail-panel" id="caseDetail"><div class="empty-state tall"><span>◫</span><p>Velg eller opprett en sak</p></div></article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="caseDialog" class="modal"><form method="dialog" id="caseForm"><div class="modal-head"><div><span class="eyebrow">NEW CASE</span><h2>Opprett sak</h2></div><button value="cancel" class="icon-button" aria-label="Lukk">×</button></div><label for="caseTitle">Tittel</label><input id="caseTitle" maxlength="80" placeholder="Mistenkelig e-post" required><label for="caseDescription">Beskrivelse</label><textarea id="caseDescription" rows="4" maxlength="500" placeholder="Hva undersøker du?"></textarea><div class="modal-actions"><button value="cancel" class="ghost-button">Avbryt</button><button value="default" class="primary-button" id="createCaseButton">Opprett</button></div></form></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="app.js" defer></script>
 </body>
 </html>
